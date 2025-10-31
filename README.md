@@ -124,23 +124,23 @@ domreviews <PRICE> çox yaxşı
 ### Results
 
 #### Lexical Coverage (per dataset)
-
+```
 labeled-sentiment_2col.xlsx: W2V=0.925, FT=0.925
 test__1__2col.xlsx: W2V=0.925, FT=0.925
 train__3__2col.xlsx: W2V=0.932, FT=0.932
 train-00000-of-00001_2col.xlsx: W2V=0.880, FT=0.880
 merged_dataset_CSV__1__2col.xlsx: W2V=0.882, FT=0.882
-
+```
 
 #### Synonym/Antonym Similarities
-
+```
 Synonyms: W2V=0.402,  FT=0.436
 Antonyms: W2V=0.361,  FT=0.407
 Separation (Syn - Ant): W2V=0.042,  FT=0.030
-
+```
 
 #### Nearest Neighbors (Qualitative Samples)
-
+```
 W2V NN for 'yaxşı': ['rating_pos', 'iyi', 'yaxshi', 'awsome', 'yaxşi']
 FT NN for 'yaxşı': ['yaxşıı', 'yaxşıkı', 'yaxşıca', 'yaxş', 'yaxşıki']
 
@@ -155,7 +155,7 @@ FT NN for 'bahalı': ['bahalıı', 'bahalısı', 'bahalıq', 'baharlı', 'bahal�
 
 W2V NN for '<RATING_POS>': []
 FT NN for '<RATING_POS>': ['dali', 'ehali', 'dıg', 'zaryatkali', 'gunniy']
-
+```
 ---
 
 ## 6. Lemmatization (Optional)
