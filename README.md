@@ -33,23 +33,16 @@ We mapped all sentiments to numeric values: **Negative=0.0, Neutral=0.5, Positiv
 ## 2. Preprocessing
 
 ### Rules Applied
-Our Azerbaijani-aware preprocessing pipeline includes: **Lowercase conversion** (with Turkish-Azerbaijani mappings İ→i, I→ı), **entity normalization** (URLs→URL, emails→EMAIL, @mentions→USER, phones→PHONE), **hashtag splitting** with camelCase detection (#QarabagIsBack→qarabag is back), **emoji mapping** (10 common emojis to EMO_POS/EMO_NEG), **number tokenization** (all digits→<NUM>), **repeated character normalization** (cooool→coool, max 2 reps), **slang deasciification** (cox→çox, yaxsi→yaxşı, slm→salam, sagol→sağol), **negation scope marking** (3 tokens after yox/deyil/heç/qətiyyən/yoxdur get _NEG suffix), **character filtering** (kept Azerbaijani letters ə,ğ,ı,ö,ü,ç,ş,x,q), **single-letter token removal** (except o/e), **simple lemmatization** (suffix removal: -lar,-lər,-da,-də,-dan,-dən,-un,-ün), **stopword removal** (25 common words, preserving negators), and **duplicate/empty row removal**.
-
-### Before/After Examples
-
-| Original Text | Cleaned Output |
-|---------------|----------------|
-| `Bu film ÇOX yaxşıdır!!! 😍` | `bu film çox yaxşı EMO_POS` |
-| `#QarabağBizimdir 🇦🇿` | `qarabağ bizimdir` |
-| `100 AZN-ə aldım, cox pisdi ☹️` | `<NUM> <PRICE> aldı çox pis EMO_NEG` |
-| `Mən bu məhsulu bəyənməmişəm` | `mən bu məhsul bəyənməmişəm` |
-| `Yox yaxşı deyil!!!` | `yox yaxşı_NEG deyil` |
-| `@user salam, www.example.com bax` | `USER salam URL bax` |
-
-### Cleaning Statistics
-- **Duplicates removed:** ~2,340 rows (5.3%)
-- **Empty texts dropped:** ~180 rows (0.4%)
-- **Final corpus size:** ~41,580 clean sentences
+Bu aşamada, verideki yazım farklılıkları, gereksiz karakterler ve duygusal göstergeler temizlenmiş, aynı zamanda Azerice dil özelliklerine uygun dönüştürmeler yapılmıştır.
+Uygulanan temel adımlar:
+•	Tüm metinlerin küçük harfe dönüştürülmesi (Azerice karakterler korunarak: İ→i, I→ı)
+•	Boş ve yinelenen satırların silinmesi
+•	URL, e-posta, kullanıcı adı, telefon gibi öğelerin özel etiketlerle (URL, EMAIL, USER, PHONE) değiştirilmesi
+•	Emoji temizleme ve duygusal etiketlerle eşleştirme (😊 → EMO_POS, ☹️ → EMO_NEG)
+•	Hashtag ayrıştırma (#QarabagIsBack → qarabag is back)
+•	Gereksiz sembollerin kaldırılması
+•	Rakamların <NUM> ile temsil edilmesi
+•	Negasyon belirteçlerinin (yox, deyil, heç vb.) ardından gelen 3 kelimenin _NEG ekiyle işaretlenmesi
 
 ---
 
@@ -92,12 +85,6 @@ We implemented a lightweight 4-class domain classifier using regex patterns:
 **REVIEWS:** Contains {azn, manat, qiymət, aldım, ulduz, "çox yaxşı", "çox pis"}  
 **GENERAL:** Default fallback for all other texts
 
-**Distribution across corpus:**
-- News: 28.4%
-- Social: 35.2%
-- Reviews: 19.7%
-- General: 16.7%
-
 ### Domain-Specific Normalization
 Applied special token replacements for **reviews domain only:**
 
@@ -108,17 +95,13 @@ Applied special token replacements for **reviews domain only:**
 | `çox yaxşı` | → `<RATING_POS>` |
 | `çox pis` | → `<RATING_NEG>` |
 
-**Example transformation:**  
-Input: `Bu məhsul 150 AZN-ə almışam, 5 ulduz verirəm, çox yaxşı!`  
-Output: `bu məhsul <PRICE> almışam <STARS_5> verirəm <RATING_POS>`
 
 ### Domain Tags in Corpus
-Each line in `corpus_all.txt` is prefixed with domain tag (no punctuation):
+each line of the trained corpus was prefixed with a tag indicating its detected domain (e.g., domnews, domsocial, domreviews, domgeneral).
+This helps the embedding model learn how the same words behave in different domain contexts.
+Example:
 ```
-domnews azərbaycan prezidenti ilham əliyev bu gün
-domsocial salam dostlar bu gün super hava var
-domreviews bu telefon <PRICE> aldım <STARS_5> verirəm
-domgeneral kitab oxumağı çox sevirəm
+domreviews <PRICE> çox yaxşı
 ```
 
 ---
@@ -177,43 +160,7 @@ FT NN for '<RATING_POS>': ['dali', 'ehali', 'dıg', 'zaryatkali', 'gunniy']
 
 ## 6. Lemmatization (Optional)
 
-### Approach
-We implemented a simple **rule-based suffix stripper** for Azerbaijani:
-```python
-def simple_lemma(word):
-    for suffix in ["lar", "lər", "da", "də", "dan", "dən", "un", "ün"]:
-        if word.endswith(suffix):
-            return word[:-len(suffix)]
-    return word
-```
 
-**Covered suffixes:**
-- Plural: -lar, -lər (kitablar → kitab)
-- Locative: -da, -də (evdə → ev)
-- Ablative: -dan, -dən (məktəbdən → məktəb)
-- Genitive: -un, -ün (kitabın → kitab)
-
-### Effect
-
-| Metric | Without Lemma | With Lemma | Change |
-|--------|---------------|------------|---------|
-| Vocabulary Size | 38,742 | 34,210 | **-11.7%** |
-| Model Size (W2V) | 152 MB | 134 MB | -11.8% |
-| Estimated Coverage | 0.899 | ~0.913 | +1.4% |
-
-**Examples:**
-```
-kitablar    → kitab     (books → book)
-evlərdə     → evlər     (in houses → houses)
-məktəbdən   → məktəb    (from school → school)
-```
-
-### Limitations
-- **Aggressive stripping:** Sometimes removes meaningful suffixes (e.g., burada "here" → bura loses locative sense)
-- **No verb handling:** Ignored tense/aspect markers (-dı, -mış, -acaq) - would need full morphological analyzer
-- **No ambiguity resolution:** Cannot distinguish homographs
-
-**Conclusion:** Lemmatization provided modest improvements (reduced vocab sparsity, slightly better coverage). For production systems, a proper morphological analyzer (e.g., TurkLang tools) is recommended.
 
 ---
 
@@ -230,8 +177,8 @@ numpy: 1.24.3
 scikit-learn: 1.3.0
 ```
 
-**Hardware:** [INSERT YOUR MACHINE INFO]  
-**OS:** [e.g., Ubuntu 22.04 / Windows 11 / macOS 13]
+**Hardware:** MacBook Air M2 16GB RAM
+**OS:** macOS 13
 
 ### Installation
 ```bash
@@ -255,72 +202,17 @@ python compare_models.py
 - **Pandas operations:** Deterministic (no random sampling)
 - ⚠️ **Note:** Word2Vec/FastText training is non-deterministic by default due to multi-threading. For exact reproduction, set `workers=1, seed=42` in training scripts.
 
-### Repository Structure
-```
-ceng442-assignment1-[groupname]/
-├── preprocess.py                      # Part 7: Preprocessing pipeline
-├── train_embeddings.py                # Part 8: Embedding training
-├── compare_models.py                  # Part 9: Evaluation
-├── labeled-sentiment_2col.xlsx        # Cleaned outputs
-├── test__1__2col.xlsx
-├── train__3__2col.xlsx
-├── train-00000-of-00001_2col.xlsx
-├── merged_dataset_CSV__1__2col.xlsx
-├── corpus_all.txt                     # Domain-tagged corpus
-├── embeddings/
-│   ├── word2vec.model                 # Trained models
-│   └── fasttext.model
-├── README.md                          # This file
-└── requirements.txt
-```
 
 ---
 
 ## 8. Conclusions
 
-### Which Model Worked Better?
-
-**Winner: Word2Vec (for sentiment analysis tasks)**
-
-| Criterion | Word2Vec | FastText | Winner |
-|-----------|----------|----------|--------|
-| Coverage | 0.899 | 0.924 | FastText |
-| Separation (Syn-Ant) | 0.275 | 0.271 | Word2Vec ✓ |
-| Training Speed | 8 min | 14 min | Word2Vec |
-| Model Size | 152 MB | 187 MB | Word2Vec |
-| Interpretability | High | Medium | Word2Vec |
-
-**Reasoning:**
-1. **Word2Vec achieves better polarity separation** (+0.004 Syn-Ant margin) - critical for sentiment classification
-2. **Cleaner nearest neighbors** - no morphological noise like inflected forms
-3. **Faster training and smaller model size** - better for deployment
-4. **FastText's subword advantage is limited** in our case because: (a) we applied lemmatization, (b) Azerbaijani morphology is relatively predictable, (c) our min_count=3 already filters rare variants
-
-**When to prefer FastText:**
-- Handling truly OOV words (misspellings, rare proper nouns)
-- Very limited training data (<10k sentences)
-- Morphologically complex domains (legal, medical texts)
-
-### Key Contributions
-1. ✅ First domain-aware Azerbaijani sentiment corpus (41.5k sentences)
-2. ✅ Negation-aware preprocessing with 3-token scope marking
-3. ✅ Review-specific normalization (<PRICE>, <STARS_N>, <RATING_POS/NEG>)
-4. ✅ Reproducible pipeline with clear documentation
-
-### Limitations & Future Work
-**Current limitations:**
-- Simple rule-based lemmatization (needs full morphological analyzer)
-- Domain detection uses regex (could use classifier)
-- Fixed 3-token negation scope (should be syntax-aware)
-- No held-out validation set (all data used for training)
-
-**Next steps:**
-1. **Train downstream classifier** using embeddings (Logistic Regression / LSTM) to measure extrinsic quality
-2. **Domain-specific models** - train separate embeddings per domain, measure domain drift
-3. **Expand emoji lexicon** from 10 to 50+ emojis with intensity scores
-4. **Error analysis** on misclassified examples to refine preprocessing rules
-5. **Contextualized embeddings** - fine-tune mBERT or XLM-RoBERTa on Azerbaijani data
-6. **Cross-lingual alignment** with Turkish/English for transfer learning
+•	FastText outperformed Word2Vec in handling Azerbaijani morphology and unseen words.
+•	Domain tagging and emoji normalization improved semantic coherence.
+•	Retaining neutral (0.5) samples provided smoother transitions in sentiment space.
+Next Steps:
+•	Integrate contextual embeddings (e.g., BERT multilingual).
+•	Fine-tune on each domain separately for domain-adaptive sentiment classification.
 
 ---
 
