@@ -216,6 +216,11 @@ pip install pandas gensim regex ftfy openpyxl scikit-learn
 
 ### How to Run
 ```bash
+
+python3 -m venv .venv 
+source .venv/bin/activate
+pip install -r requirements.txt
+
 # Step 1: Preprocess all datasets (generates *_2col.xlsx files + corpus_all.txt)
 python preprocess.py
 
