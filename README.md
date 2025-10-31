@@ -35,14 +35,14 @@ We mapped all sentiments to numeric values: **Negative=0.0, Neutral=0.5, Positiv
 ### Rules Applied
 Bu aşamada, verideki yazım farklılıkları, gereksiz karakterler ve duygusal göstergeler temizlenmiş, aynı zamanda Azerice dil özelliklerine uygun dönüştürmeler yapılmıştır.
 Uygulanan temel adımlar:
-•	Tüm metinlerin küçük harfe dönüştürülmesi (Azerice karakterler korunarak: İ→i, I→ı)
-•	Boş ve yinelenen satırların silinmesi
-•	URL, e-posta, kullanıcı adı, telefon gibi öğelerin özel etiketlerle (URL, EMAIL, USER, PHONE) değiştirilmesi
-•	Emoji temizleme ve duygusal etiketlerle eşleştirme (😊 → EMO_POS, ☹️ → EMO_NEG)
-•	Hashtag ayrıştırma (#QarabagIsBack → qarabag is back)
-•	Gereksiz sembollerin kaldırılması
-•	Rakamların <NUM> ile temsil edilmesi
-•	Negasyon belirteçlerinin (yox, deyil, heç vb.) ardından gelen 3 kelimenin _NEG ekiyle işaretlenmesi
+-	Tüm metinlerin küçük harfe dönüştürülmesi (Azerice karakterler korunarak: İ→i, I→ı)
+-	Boş ve yinelenen satırların silinmesi
+-	URL, e-posta, kullanıcı adı, telefon gibi öğelerin özel etiketlerle (URL, EMAIL, USER, PHONE) değiştirilmesi
+-	Emoji temizleme ve duygusal etiketlerle eşleştirme (😊 → EMO_POS, ☹️ → EMO_NEG)
+-	Hashtag ayrıştırma (#QarabagIsBack → qarabag is back)
+-	Gereksiz sembollerin kaldırılması
+-	Rakamların <NUM> ile temsil edilmesi
+-	Negasyon belirteçlerinin (yox, deyil, heç vb.) ardından gelen 3 kelimenin _NEG ekiyle işaretlenmesi
 
 ---
 
