@@ -18,11 +18,11 @@
 ### Datasets
 We processed 5 Azerbaijani sentiment datasets to create a unified corpus for Word2Vec and FastText training:
 Kullanılan veri dosyaları: 
-- labeled-sentiment_2col.xlsx,
-- test__1__2col.xlsx,
-- train__3__2col.xlsx,
-- train-00000-of-00001_2col.xlsx,
-- merged_dataset_CSV__1__2col.xlsx.
+- labeled-sentiment.xlsx,
+- test__1_.xlsx,
+- train__3_.xlsx,
+- train-00000-of-00001_.xlsx,
+- merged_dataset_CSV__1_.xlsx.
 
 
 ### Why Keep Neutral = 0.5?
@@ -207,12 +207,12 @@ python compare_models.py
 
 ## 8. Conclusions
 
-•	FastText outperformed Word2Vec in handling Azerbaijani morphology and unseen words.
-•	Domain tagging and emoji normalization improved semantic coherence.
-•	Retaining neutral (0.5) samples provided smoother transitions in sentiment space.
+-	FastText outperformed Word2Vec in handling Azerbaijani morphology and unseen words.
+-	Domain tagging and emoji normalization improved semantic coherence.
+-	Retaining neutral (0.5) samples provided smoother transitions in sentiment space.
 Next Steps:
-•	Integrate contextual embeddings (e.g., BERT multilingual).
-•	Fine-tune on each domain separately for domain-adaptive sentiment classification.
+-	Integrate contextual embeddings (e.g., BERT multilingual).
+-	Fine-tune on each domain separately for domain-adaptive sentiment classification.
 
 ---
 
